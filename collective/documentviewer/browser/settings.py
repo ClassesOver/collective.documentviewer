@@ -1,12 +1,11 @@
 from logging import getLogger
-from zope.component import getMultiAdapter
-from z3c.form import form
-from z3c.form import field
-from z3c.form import button
+
+from collective.documentviewer.interfaces import IDocumentViewerSettings
+from collective.documentviewer.interfaces import mf as _
 from plone.app.z3cform.layout import wrap_form
 from Products.CMFPlone import PloneMessageFactory
-from collective.documentviewer.interfaces import IDocumentViewerSettings
-from collective.documentviewer import mf as _
+from z3c.form import button, field, form
+from zope.component import getMultiAdapter
 
 logger = getLogger('collective.documentviewer')
 
@@ -36,5 +35,6 @@ class SettingsForm(form.EditForm):
         self.request.response.redirect(url)
 
         self.context.plone_utils.addPortalMessage(PloneMessageFactory('Changes saved.'))
+
 
 SettingsFormView = wrap_form(SettingsForm)

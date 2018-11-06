@@ -48,6 +48,6 @@ setup(name='collective.documentviewer',
       target = plone
 
       [celery_tasks]
-      documentviewer = collective.documentviewer.async
+      documentviewer = collective.documentviewer.async_utils
       """
       )

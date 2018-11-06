@@ -10,7 +10,7 @@ from zope.component import getUtility
 
 try:
     from zc.async.interfaces import COMPLETED
-except:
+except ImportError:
     COMPLETED = None
 
 logger = getLogger('collective.documentviewer')
@@ -18,7 +18,7 @@ logger = getLogger('collective.documentviewer')
 QUOTA_NAME = 'dv'
 
 try:
-    from plone.app.async.interfaces import IAsyncService
+    from plone.app.async_utils.interfaces import IAsyncService
 except ImportError:
     pass
 
@@ -28,19 +28,11 @@ except ImportError:
     pass
 
 
-def asyncInstalled():
-    try:
-        import plone.app.async  # noqa
-        return True
-    except:
-        return False
-
-
 def celeryInstalled():
     try:
         import collective.celery  # noqa
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -52,9 +44,7 @@ def isConversion(job, sitepath):
 
 
 def getJobRunner(obj):
-    if asyncInstalled():
-        return AsyncJobRunner(obj)
-    elif celeryInstalled():
+    if celeryInstalled():
         return CeleryJobRunner(obj)
 
 
@@ -69,8 +59,8 @@ class AsyncJobRunner(object):
         self.objectpath = self.object.getPhysicalPath()
         self.portal = getPortal(obj)
         self.portalpath = self.portal.getPhysicalPath()
-        self.async = getUtility(IAsyncService)
-        self.queue = self.async.getQueues()['']
+        self.async_util = getUtility(IAsyncService)
+        self.queue = self.async_util.getQueues()['']
 
     def is_current_active(self, job):
         return isConversion(job, self.portalpath) and \
@@ -122,8 +112,8 @@ class AsyncJobRunner(object):
                         self.queue.name)
 
     def queue_it(self):
-        self.async.queueJobInQueue(self.queue, (QUOTA_NAME,), runConversion,
-                                   self.object)
+        self.async_util.queueJobInQueue(self.queue, (QUOTA_NAME,), runConversion,
+                                        self.object)
         settings = Settings(self.object)
         settings.converting = True
 
@@ -232,7 +222,7 @@ def asyncQueueJob(obj):
         else:
             runner.queue_it()
         return
-    except:
+    except Exception:
         raise QueueException
 
 
@@ -245,7 +235,7 @@ def celeryQueueJob(obj):
         else:
             runner.queue_it()
         return
-    except:
+    except Exception:
         raise QueueException
 
 
@@ -254,12 +244,10 @@ def queueJob(obj):
     if not converter.can_convert:
         return
     try:
-        if asyncInstalled():
-            asyncQueueJob(obj)
-        elif celeryInstalled():
+        if celeryInstalled():
             celeryQueueJob(obj)
         else:
-            converter(async=False)
+            converter(False)
     except QueueException:
         logger.exception(
             "Error using async with "

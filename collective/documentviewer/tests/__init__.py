@@ -21,15 +21,12 @@ class BaseTest(unittest.TestCase):
         self.request = self.layer['request']
         alsoProvides(self.request, ILayer)
         setRoles(self.portal, TEST_USER_ID, ['Manager'])
-        from collective.documentviewer import async
-        self.origFunc = async.asyncInstalled
-        async.asyncInstalled = lambda: False
 
     def tearDown(self):
-        from collective.documentviewer import async
-        async.asyncInstalled = self.origFunc
+        pass
 
     def createFile(self, name="test.pdf", id='test1'):
-        fi = createObject(self.portal, 'File', id,
+        fi = createObject(
+            self.portal, 'File', id,
             file=open(join(_files, name)))
         return fi

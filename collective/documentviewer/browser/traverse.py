@@ -13,16 +13,23 @@ from collective.documentviewer.interfaces import IBlobFileWrapper
 from collective.documentviewer.settings import GlobalSettings
 from collective.documentviewer.settings import Settings
 from collective.documentviewer.utils import getPortal
-from plone.app.blob.download import handleRequestRange
-from plone.app.blob.iterators import BlobStreamIterator
-from plone.app.blob.utils import openBlob
-from webdav.common import rfc1123_date
 from zExceptions import NotFound
 from zope.annotation.interfaces import IAnnotations
-from zope.interface import implements
+from zope.interface import implementer
 from zope.publisher.interfaces.browser import IBrowserPublisher
 
+try:
+    from webdav.common import rfc1123_date
+except ImportError:
+    from App.Common import rfc1123_date
+
+
 logger = getLogger('collective.documentviewer')
+
+
+# XXX needs port?
+# from plone.app.blob.download import handleRequestRange
+# from plone.app.blob.iterators import BlobStreamIterator
 
 
 class BlobView(BrowserView):
@@ -35,7 +42,7 @@ class BlobView(BrowserView):
         settings = self.context.settings
         filepath = self.context.filepath
         blob = settings.blob_files[filepath]
-        blobfi = openBlob(blob)
+        blobfi = blob.open('r')
         length = os.fstat(blobfi.fileno()).st_size
         blobfi.close()
         ext = os.path.splitext(os.path.normcase(filepath))[1][1:]
@@ -54,8 +61,8 @@ class BlobView(BrowserView):
         return BlobStreamIterator(blob, **request_range)
 
 
+@implementer(IBlobFileWrapper, IBrowserPublisher)
 class BlobFileWrapper(SimpleItem):
-    implements(IBlobFileWrapper, IBrowserPublisher)
 
     def __init__(self, fileobj, settings, filepath, request):
         self.context = fileobj
@@ -67,11 +74,11 @@ class BlobFileWrapper(SimpleItem):
         return self, ('@@view',)
 
 
+@implementer(IBrowserPublisher)
 class PDFTraverseBlobFile(SimpleItem):
     """
     For traversing blob data store
     """
-    implements(IBrowserPublisher)
 
     def __init__(self, fileobj, settings, request, previous=None):
         self.context = fileobj
@@ -135,8 +142,8 @@ def _getPortal(request, context):
     return getPortal(context)
 
 
+@implementer(IBrowserPublisher)
 class PDFFiles(SimpleItem, DirectoryResource):
-    implements(IBrowserPublisher)
 
     def __init__(self, context, request, previous=[]):
         SimpleItem.__init__(self, context, request)

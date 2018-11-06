@@ -1,22 +1,21 @@
-from AccessControl import Unauthorized
-from collective.documentviewer import mf as _
-from collective.documentviewer import storage
-from collective.documentviewer.async import asyncInstalled
-from collective.documentviewer.async import celeryInstalled
-from collective.documentviewer.async import getJobRunner
-from collective.documentviewer.async import queueJob
-from collective.documentviewer.convert_all import convert_all
-from collective.documentviewer.convert import docsplit
-from collective.documentviewer.convert import DUMP_FILENAME
-from collective.documentviewer.convert import TEXT_REL_PATHNAME
-from collective.documentviewer.interfaces import IFileWrapper
-from collective.documentviewer.interfaces import IUtils
-from collective.documentviewer.settings import GlobalSettings
-from collective.documentviewer.settings import Settings
-from collective.documentviewer.utils import allowedDocumentType
-from collective.documentviewer.utils import getPortal
-from DateTime import DateTime
+import json
+import os
+import random
+import shutil
 from logging import getLogger
+
+from AccessControl import Unauthorized
+from collective.documentviewer import storage
+from collective.documentviewer.async_utils import (celeryInstalled,
+                                                   getJobRunner, queueJob)
+from collective.documentviewer.convert import (DUMP_FILENAME,
+                                               TEXT_REL_PATHNAME, docsplit)
+from collective.documentviewer.convert_all import convert_all
+from collective.documentviewer.interfaces import IFileWrapper, IUtils
+from collective.documentviewer.interfaces import mf as _
+from collective.documentviewer.settings import GlobalSettings, Settings
+from collective.documentviewer.utils import allowedDocumentType, getPortal
+from DateTime import DateTime
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
 from Products.CMFCore.utils import getToolByName
@@ -27,13 +26,7 @@ from zope.annotation.interfaces import IAnnotations
 from zope.component import getMultiAdapter
 from zope.i18n import translate
 from zope.index.text.parsetree import ParseError
-from zope.interface import implements
-
-import json
-import os
-import random
-import shutil
-
+from zope.interface import implementer
 
 logger = getLogger('collective.documentviewer')
 
@@ -354,8 +347,8 @@ class DocumentViewerSearchView(BrowserView):
         return json.dumps({"results": [], "query": query})
 
 
+@implementer(IUtils)
 class Utils(BrowserView):
-    implements(IUtils)
 
     def enabled(self):
         try:
@@ -369,14 +362,14 @@ class Utils(BrowserView):
                         self.context, settings.auto_layout_file_types)
             else:
                 return False
-        except:
+        except Exception:
             return False
 
     def settings_enabled(self):
         return self.context.getLayout() == 'documentviewer'
 
     def async_enabled(self):
-        return asyncInstalled() or celeryInstalled()
+        return celeryInstalled()
 
     def clean_folder(self, catalog, storage_loc):
         if not os.path.isdir(storage_loc):
@@ -443,7 +436,7 @@ class Convert(Utils):
         mtool = getToolByName(self.context, 'portal_membership')
         self.manager = mtool.checkPermission('cmf.ManagePortal',
                                              self.context)
-        self.async_installed = asyncInstalled() or celeryInstalled()
+        self.async_installed = celeryInstalled()
         self.converting = False
         if self.enabled():
             req = self.request

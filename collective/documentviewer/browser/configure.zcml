@@ -24,24 +24,6 @@
     description="To show thumbnails from pdf and make it searchable." />
 
   <browser:page
-    zcml:condition="installed plone.app.async"
-    name="dvasync-monitor"
-    for="Products.CMFPlone.interfaces.IPloneSiteRoot"
-    class=".controlpanel.AsyncMonitor"
-    template="templates/async-monitor.pt"
-    permission="cmf.ManagePortal"
-    layer="..interfaces.ILayer" />
-
-  <browser:page
-    zcml:condition="installed plone.app.async"
-    name="dv-remove-from-queue"
-    for="Products.CMFPlone.interfaces.IPloneSiteRoot"
-    class=".controlpanel.AsyncMonitor"
-    attribute="remove"
-    permission="cmf.ManagePortal"
-    layer="..interfaces.ILayer" />
-
-  <browser:page
     name="global-documentviewer-settings"
     for="Products.CMFPlone.interfaces.IPloneSiteRoot"
     class=".controlpanel.GlobalSettingsFormView"

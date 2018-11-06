@@ -2,8 +2,8 @@ import os
 
 import zope.interface
 from zope.cachedescriptors.property import Lazy as lazy_property
-from zope.component import adapts
-from zope.interface import implements, Interface
+from zope.interface import implementer, Interface
+from zope.component import adapter
 
 from OFS.interfaces import IItem
 from Products.CMFCore.utils import getToolByName
@@ -33,13 +33,12 @@ except ImportError:
         pass
 
 
+@adapter(IItem)
+@zope.interface.implementer(IOCRLanguage)
 class StandardOCRLanguageAdapter(object):
     """ Return the document language through a configurable
         adapter.
     """
-
-    adapts(IItem)
-    zope.interface.implements(IOCRLanguage)
 
     def __init__(self, context):
         self.context = context
@@ -58,9 +57,9 @@ class StandardOCRLanguageAdapter(object):
         return ISO_UTF_MAP.get(lang, 'eng')
 
 
+@implementer(IFileWrapper)
+@adapter(IItem)
 class BaseItem(object):
-    implements(IFileWrapper)
-    adapts(IItem)
 
     def __init__(self, context):
         self.context = context
@@ -96,8 +95,8 @@ class BaseItem(object):
         return self._field.getFilename(self.context)
 
 
+@adapter(IDexterityContent)
 class DexterityItem(BaseItem):
-    adapts(IDexterityContent)
 
     def __init__(self, context):
         super(DexterityItem, self).__init__(context)

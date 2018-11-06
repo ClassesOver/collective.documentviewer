@@ -19,7 +19,6 @@ Features
 - OCR
 - Searchable on OCR text
 - works with many different document types
-- plone.app.async integration with task monitor
 - lots of configuration options
 - PDF Album view for display groups of PDFs
 
@@ -52,7 +51,7 @@ Install requirements
 Async Integration
 -----------------
 
-It it highly recommended to install and configure plone.app.async
+It it highly recommended to install and configure collective.celery
 in combination with this package. Doing so will manage all pdf
 conversions processes asynchronously so the user isn't delayed
 so much when saving files.

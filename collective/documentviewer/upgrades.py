@@ -14,7 +14,7 @@ from collective.documentviewer.settings import GlobalSettings
 from collective.documentviewer.settings import Settings
 from collective.documentviewer.settings import STORAGE_VERSION
 from collective.documentviewer.utils import allowedDocumentType
-from collective.documentviewer.async import queueJob
+from collective.documentviewer.async_utils import queueJob
 from collective.documentviewer import storage
 from collective.documentviewer.utils import mkdir_p
 

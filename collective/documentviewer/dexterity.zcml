@@ -51,14 +51,6 @@
     permission="cmf.ModifyPortalContent" />
 
   <browser:page
-    zcml:condition="installed plone.app.async"
-    name="dvmove-to-front"
-    for="plone.dexterity.interfaces.IDexterityContent"
-    class=".browser.views.MoveJob"
-    permission="cmf.ManagePortal"
-    layer=".interfaces.ILayer" />
-
-  <browser:page
     name="convert-to-documentviewer"
     for="plone.dexterity.interfaces.IDexterityContent"
     permission="cmf.ModifyPortalContent"
@@ -87,7 +79,7 @@
 
   <adapter name="SearchableText" factory=".catalog.SearchableTextDexterity" />
 
-  <configure zcml:condition="installed plone.app.contenttypes">
+  <configure zcml:condition="installed Products.contentmigration">
     <adapter
         name="pac_documentviewer_migration"
         factory=".migration.PACDocumentViewerMigator"
