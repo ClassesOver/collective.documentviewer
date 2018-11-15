@@ -1,8 +1,11 @@
 Changelog
 =========
 
-4.1.1 (unreleased)
+4.2.0 (unreleased)
 ------------------
+
+- Python 3, Plone 5.2 compatible
+  [vangheem]
 
 - Fix issue breaking zoom on the 1st page of PDFs
   [obct537]

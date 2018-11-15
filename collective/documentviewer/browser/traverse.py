@@ -1,22 +1,20 @@
-from logging import getLogger
 import os
+from logging import getLogger
 
-from AccessControl import Unauthorized
-from AccessControl import getSecurityManager
+from AccessControl import Unauthorized, getSecurityManager
+from collective.documentviewer.interfaces import IBlobFileWrapper
+from collective.documentviewer.settings import GlobalSettings, Settings
+from collective.documentviewer.utils import getPortal
 from OFS.SimpleItem import SimpleItem
 from Products.CMFCore import permissions
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser import BrowserView
-from Products.Five.browser.resource import Directory
-from Products.Five.browser.resource import DirectoryResource
-from collective.documentviewer.interfaces import IBlobFileWrapper
-from collective.documentviewer.settings import GlobalSettings
-from collective.documentviewer.settings import Settings
-from collective.documentviewer.utils import getPortal
+from Products.Five.browser.resource import Directory, DirectoryResource
 from zExceptions import NotFound
 from zope.annotation.interfaces import IAnnotations
 from zope.interface import implementer
 from zope.publisher.interfaces.browser import IBrowserPublisher
+from ZPublisher.Iterators import filestream_iterator
 
 try:
     from webdav.common import rfc1123_date
@@ -25,11 +23,6 @@ except ImportError:
 
 
 logger = getLogger('collective.documentviewer')
-
-
-# XXX needs port?
-# from plone.app.blob.download import handleRequestRange
-# from plone.app.blob.iterators import BlobStreamIterator
 
 
 class BlobView(BrowserView):
@@ -42,9 +35,9 @@ class BlobView(BrowserView):
         settings = self.context.settings
         filepath = self.context.filepath
         blob = settings.blob_files[filepath]
-        blobfi = blob.open('r')
-        length = os.fstat(blobfi.fileno()).st_size
-        blobfi.close()
+        filename = blob._p_blob_uncommitted or blob.committed()
+
+        length = os.path.getsize(filename)
         ext = os.path.splitext(os.path.normcase(filepath))[1][1:]
         if ext == 'txt':
             ct = 'text/plain'
@@ -53,12 +46,9 @@ class BlobView(BrowserView):
 
         self.request.response.setHeader('Last-Modified',
                                         rfc1123_date(self.context._p_mtime))
-        self.request.response.setHeader('Accept-Ranges', 'bytes')
         self.request.response.setHeader("Content-Length", length)
         self.request.response.setHeader('Content-Type', ct)
-        request_range = handleRequestRange(
-            self.context, length, self.request, self.request.response)
-        return BlobStreamIterator(blob, **request_range)
+        return filestream_iterator(filename, 'rb')
 
 
 @implementer(IBlobFileWrapper, IBrowserPublisher)
